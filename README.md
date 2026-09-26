@@ -1,31 +1,119 @@
 # modern-bert-jev
 
-**Trained adapter: [ali-rehman-ML/modern-bert-jev](https://huggingface.co/ali-rehman-ML/modern-bert-jev)** —
-0.6379 accuracy against a 0.1509 uniform baseline, 1.0351 calibrated NLL, 0.0525
-calibrated ECE on 9,599 held-out rows. Handles 3 to 151 choices with one shared
-scalar head. Apache-2.0.
+**Pick the best option from a list — with percentages you can trust.**
 
-Fine-tune a pinned ModernBERT backbone on choice tasks from
-[`Praveenrajus/jev-bench`](https://huggingface.co/datasets/Praveenrajus/jev-bench).
-The model evaluates `(context, question, candidate)` jointly, mean-pools non-padding
-hidden states, and produces one scalar per candidate. Softmax across the supplied
-candidates gives a distribution. JSON serialization is handled by Python.
+[![Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-modern--bert--jev-yellow)](https://huggingface.co/ali-rehman-ML/modern-bert-jev)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ali-rehman-ML/modern-bert-jev/blob/main/demo.ipynb)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
-`choice_model.MODELS` pins every usable backbone; a config's `"model"` key picks
-one and defaults to `ModernBERT-large`. `ModernBERT-base` (150M total, 768 hidden,
-22 layers) is the one that fits the full unlimited-choice dataset on a single H100.
+Give it some background, a question, and a list of options. It reads every option against
+the background and tells you how likely each one is.
 
-## Null choice descriptions (fixed)
+```
+Background:  "How long will it take for my ID to verify?"
+Question:    Which banking support intent does this express?
+Options:     Card arrival / Lost or stolen card / Unable to verify identity / ... (77 total)
 
-`jev-bench` publishes `null` criteria descriptions for LEDGAR and GoEmotions, in
-100% of rows on every split. Each candidate then rendered as the literal string
-`Candidate: None`, so all candidates of an example shared one encoder input and the
-model returned identical logits by construction — exactly `ln K` NLL and exactly
-`1/K` confidence, untrainable no matter how long it ran. `normalize` now falls back
-to the criterion ID (`admiration`, `Anti-Corruption Laws`), and `encode` raises if
-every candidate of a record still renders to the same text. This silently wrecked
-`runs/modal-28` (GoEmotions was 45.9% of that mix with a hard loss floor of
-`ln 28`) and zeroed two sources in `runs/modal-6-all`.
+          →  Unable to verify identity        ████████████████████  81%
+             Why verify identity              ███                   11%
+             Verify my identity               ██                     5%
+```
+
+Two options or 151 — it is the same model either way. Nothing is wired to a fixed list, so
+you can hand it categories it has never seen and it will still rank them.
+
+The percentages are **calibrated**: when it says 70%, it is right about 70% of the time.
+That is the unusual part. Most classifiers are wildly overconfident.
+
+## Try it
+
+**In your browser, free, no setup** — [open the Colab notebook](https://colab.research.google.com/github/ali-rehman-ML/modern-bert-jev/blob/main/demo.ipynb)
+and press play. It prints a link to a working demo in about two minutes.
+
+**On your own machine:**
+
+```bash
+git clone https://github.com/ali-rehman-ML/modern-bert-jev
+cd modern-bert-jev
+pip install torch transformers gradio
+python space/app.py
+```
+
+**From Python:**
+
+```python
+from predict import Predictor
+
+predictor = Predictor("runs/base-full")
+print(predictor({
+    "question": "Which emotion does the comment primarily express?",
+    "context": "i stay as quiet as i can until im caught",
+    "choices": {"anger": "anger", "annoyance": "annoyance", "fear": "fear", "joy": "joy"},
+}))
+```
+
+## What it is good at
+
+Sorting text into a known list of categories. Tested on 9,599 examples it had never seen:
+
+| Task | Options to choose from | Gets it right | Random guessing |
+|---|---:|---:|---:|
+| Bank support messages | 77 | **86%** | 1% |
+| Voice assistant commands | 60 | **84%** | 2% |
+| Customer service intents | 151 | **83%** | 1% |
+| Sentence logic | 3 | **77%** | 33% |
+| Legal contract clauses | 100 | **76%** | 1% |
+| Emotion in a comment | 28 | **62%** | 4% |
+| Disputed sentence logic | 3 | 53% | 33% |
+| School science questions | 4 | 35% | 25% |
+| University exam questions | 4 | 28% | 25% |
+
+Overall: **64% correct** where random guessing gets 15%.
+
+## What it is bad at
+
+**Anything needing world knowledge.** The bottom two rows above are the honest warning. On
+university exam questions it scores 28% against 25% for guessing — that is not a useful
+model, it is noise. It is a small model and it has not memorised facts. Use a large language
+model for trivia and exams.
+
+It is also **English only**, was trained on **one random seed** so there is no error bar, and
+it only reads the first ~400 words of your background text.
+
+## How it works, briefly
+
+Instead of one big output layer with a slot per category, it scores **one option at a time**.
+Each option gets glued to your background and question, read by the model, and turned into a
+single number. Softmax over those numbers gives the percentages.
+
+```
+background + question + option 1  →  model  →  4.2  ┐
+background + question + option 2  →  model  →  1.8  ├→  softmax  →  81% / 11% / 5%
+background + question + option 3  →  model  →  0.3  ┘
+```
+
+The model never sees the competing options, which is exactly why the number of them does not
+matter. The cost is that it runs once per option, so 151 options means 151 passes.
+
+Underneath is [ModernBERT-base](https://huggingface.co/answerdotai/ModernBERT-base), frozen.
+Only **1.6 million** of its 150 million settings were trained — a thin adapter on the
+attention layers plus one small output layer. The trained part is 6.5 MB.
+
+Trained on all nine option-picking tasks at once for 2 hours on one H100.
+
+## One bug worth knowing about
+
+The benchmark ships two of its nine tasks with **empty option descriptions**. Every option
+therefore rendered as the same text, the model saw identical input for all of them, and it
+returned identical scores by construction — perfectly uniform, untrainable at any budget.
+
+Legal clause classification went from **1% to 76%** when that was fixed. The repo now falls
+back to the option's name and refuses outright if a question's options all read the same.
+
+---
+
+<details>
+<summary><b>Full technical reference</b> — training recipe, memory strategy, data provenance, reproduction commands</summary>
 
 ## Current recipe: full dataset on one H100
 
@@ -42,8 +130,8 @@ temperature corrects the confidence shift that sampled training introduces.
 | --- | --- | --- |
 | backbone | ModernBERT-base | 2.5x less activation memory than large |
 | `train_max_candidates` | 32 | 25.9 mean candidates/example instead of 68.0 |
-| `epochs` | 2 | `modal-6-all` bottomed at epoch 1.7 and then degraded to NLL 3.73 |
-| `accumulation` | 16 | 512 sequences worst case, 24.5 GiB peak |
+| `epochs` | 2 | see EXPERIMENT_RESULTS.md: this under-trained, raise to 4 |
+| `accumulation` | 16 | 512 sequences worst case, 26.1 GiB peak |
 | `lora_rank` / `alpha` | 16 / 32 | 1.6M trainable, for nine tasks instead of four |
 | `learning_rate` | 2e-4, 5% warmup, cosine | smaller backbone tolerates more |
 | `validation_per_source` | 250 | 1,000 validation + 1,000 calibration rows |
@@ -53,7 +141,7 @@ temperature corrects the confidence shift that sampled training introduces.
 MMLU (284 train rows) and ARC-Challenge (1,118) stay data-starved by the published
 splits and improve only by transfer; ChaosNLI has no train split at all and is pure
 zero-shot from MNLI. Sampled training moved the per-epoch workload from 241M padded
-token-rows to roughly 65M, which is what makes this fit and finish in ~2 hours.
+token-rows to roughly 65M.
 
 ## Choice-count limits and what each run covers
 
@@ -343,3 +431,5 @@ if your task needs it. Score and Noul primitives are outside this experiment.
 
 The smoke test and pilot must not be presented as reproducing Jev's architecture
 or matching its performance. This is an independently designed encoder experiment.
+
+</details>
