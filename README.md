@@ -1,4 +1,9 @@
-# ModernBERT choice-scoring experiment
+# modern-bert-jev
+
+**Trained adapter: [ali-rehman-ML/modern-bert-jev](https://huggingface.co/ali-rehman-ML/modern-bert-jev)** —
+0.6379 accuracy against a 0.1509 uniform baseline, 1.0351 calibrated NLL, 0.0525
+calibrated ECE on 9,599 held-out rows. Handles 3 to 151 choices with one shared
+scalar head. Apache-2.0.
 
 Fine-tune a pinned ModernBERT backbone on choice tasks from
 [`Praveenrajus/jev-bench`](https://huggingface.co/datasets/Praveenrajus/jev-bench).
