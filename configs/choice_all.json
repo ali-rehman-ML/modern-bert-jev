@@ -1,0 +1,19 @@
+{
+  "sources": ["mnli", "arc_challenge", "mmlu", "banking77", "clinc150", "massive", "ledgar", "go_emotions", "chaosnli"],
+  "seed": 42,
+  "train_per_source": 0,
+  "validation_per_source": 0,
+  "test_per_source": 0,
+  "max_length": 512,
+  "epochs": 3,
+  "accumulation": 8,
+  "choice_chunk": 8,
+  "learning_rate": 0.0001,
+  "lora_rank": 8,
+  "lora_alpha": 16,
+  "eval_every": 2000,
+  "save_every": 10,
+  "warmup_fraction": 0.03,
+  "skip_baseline": true,
+  "scope": "Full choice-task dataset, three epochs, LoRA fine-tuning"
+}

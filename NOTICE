@@ -1,0 +1,10 @@
+modern-bert-jev
+Copyright 2026 Ali Rehman
+
+Licensed under the Apache License, Version 2.0.
+
+This project fine-tunes ModernBERT (answerdotai/ModernBERT-base and
+answerdotai/ModernBERT-large, Apache-2.0) on the choice tasks of
+Praveenrajus/jev-bench. No dataset content is redistributed here; the
+per-source licenses of the benchmark are recorded in data_audit.json for
+every run and include CC-BY-SA-4.0 terms for ARC-Challenge and ChaosNLI.

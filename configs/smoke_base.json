@@ -1,0 +1,21 @@
+{
+  "sources": ["mnli", "banking77", "go_emotions"],
+  "model": "answerdotai/ModernBERT-base",
+  "seed": 42,
+  "train_per_source": 16,
+  "validation_per_source": 8,
+  "test_per_source": 4,
+  "max_length": 256,
+  "steps": 3,
+  "accumulation": 4,
+  "train_max_candidates": 6,
+  "choice_chunk": 32,
+  "batch_examples": true,
+  "learning_rate": 0.0002,
+  "lora_rank": 16,
+  "lora_alpha": 32,
+  "eval_every": 3,
+  "save_every": 50,
+  "skip_baseline": true,
+  "scope": "Smoke test: ModernBERT-base, candidate subsampling, and unlimited-choice evaluation on three steps"
+}

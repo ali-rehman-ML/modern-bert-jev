@@ -1,0 +1,15 @@
+{
+  "sources": ["mnli", "arc_challenge", "mmlu"],
+  "seed": 42,
+  "train_per_source": 256,
+  "validation_per_source": 64,
+  "test_per_source": 64,
+  "max_length": 384,
+  "steps": 100,
+  "accumulation": 4,
+  "choice_chunk": 2,
+  "learning_rate": 0.0001,
+  "lora_rank": 8,
+  "lora_alpha": 16,
+  "eval_every": 50
+}

@@ -1,0 +1,8 @@
+# Install into workspace .deps with --no-deps, reusing yolo_env's existing
+# numpy, protobuf, packaging, pillow, six, setuptools and markupsafe.
+tensorboard==2.21.0
+absl-py==2.5.0
+grpcio==1.84.0
+markdown==3.10.3
+tensorboard-data-server==0.7.2
+werkzeug==3.1.8

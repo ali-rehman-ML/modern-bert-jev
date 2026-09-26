@@ -1,0 +1,22 @@
+{
+  "sources": ["mnli", "arc_challenge", "mmlu", "banking77", "clinc150", "massive", "ledgar", "go_emotions", "chaosnli"],
+  "model": "answerdotai/ModernBERT-base",
+  "seed": 42,
+  "train_per_source": 0,
+  "validation_per_source": 250,
+  "test_per_source": 0,
+  "max_length": 512,
+  "epochs": 2,
+  "accumulation": 16,
+  "train_max_candidates": 32,
+  "choice_chunk": 256,
+  "batch_examples": true,
+  "learning_rate": 0.0002,
+  "lora_rank": 16,
+  "lora_alpha": 32,
+  "eval_every": 250,
+  "save_every": 50,
+  "warmup_fraction": 0.05,
+  "skip_baseline": true,
+  "scope": "Modal H100: ModernBERT-base on the full choice dataset with no choice-count limit anywhere. Training samples at most 32 candidates per example (gold plus random negatives); validation, calibration and test score every published candidate."
+}

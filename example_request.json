@@ -1,0 +1,12 @@
+{
+  "question": "Does the hypothesis follow from the premise?",
+  "context": {
+    "premise": "All the customers received their refunds yesterday.",
+    "hypothesis": "Some customers have not received their refunds."
+  },
+  "choices": {
+    "entailment": "The hypothesis is definitely true given the premise.",
+    "neutral": "The hypothesis might be true; the premise does not settle it.",
+    "contradiction": "The hypothesis is definitely false given the premise."
+  }
+}

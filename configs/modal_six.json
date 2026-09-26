@@ -1,0 +1,21 @@
+{
+  "sources": ["mnli", "arc_challenge", "mmlu", "banking77", "clinc150", "massive", "ledgar", "go_emotions", "chaosnli"],
+  "max_choices": 6,
+  "seed": 42,
+  "train_per_source": 0,
+  "validation_per_source": 0,
+  "test_per_source": 0,
+  "max_length": 512,
+  "epochs": 3,
+  "accumulation": 8,
+  "choice_chunk": 48,
+  "batch_examples": true,
+  "learning_rate": 0.0001,
+  "lora_rank": 8,
+  "lora_alpha": 16,
+  "eval_every": 500,
+  "save_every": 50,
+  "warmup_fraction": 0.03,
+  "skip_baseline": true,
+  "scope": "Modal A10: all choice examples with at most six choices, three epochs, fresh LoRA training"
+}

@@ -1,0 +1,22 @@
+{
+  "sources": ["mnli", "arc_challenge", "mmlu", "banking77", "clinc150", "massive", "ledgar", "go_emotions", "chaosnli"],
+  "max_choices": 28,
+  "test_max_choices": null,
+  "seed": 42,
+  "train_per_source": 0,
+  "validation_per_source": 0,
+  "test_per_source": 0,
+  "max_length": 512,
+  "epochs": 3,
+  "accumulation": 8,
+  "choice_chunk": 64,
+  "batch_examples": true,
+  "learning_rate": 0.0001,
+  "lora_rank": 8,
+  "lora_alpha": 16,
+  "eval_every": 500,
+  "save_every": 50,
+  "warmup_fraction": 0.03,
+  "skip_baseline": true,
+  "scope": "Modal H100: train/validation limited to at most 28 choices, test on every published choice example with no limit, three epochs, fresh LoRA training"
+}
