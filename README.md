@@ -2,6 +2,7 @@
 
 **Pick the best option from a list — with percentages you can trust.**
 
+[![Demo](https://img.shields.io/badge/%F0%9F%A4%97%20Demo-try%20it%20live-orange)](https://huggingface.co/spaces/ali-rehman-ML/modern-bert-jev-demo)
 [![Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-modern--bert--jev-yellow)](https://huggingface.co/ali-rehman-ML/modern-bert-jev)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ali-rehman-ML/modern-bert-jev/blob/main/demo.ipynb)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
@@ -27,8 +28,13 @@ That is the unusual part. Most classifiers are wildly overconfident.
 
 ## Try it
 
-**In your browser, free, no setup** — [open the Colab notebook](https://colab.research.google.com/github/ali-rehman-ML/modern-bert-jev/blob/main/demo.ipynb)
-and press play. It prints a link to a working demo in about two minutes.
+**[Open the live demo](https://huggingface.co/spaces/ali-rehman-ML/modern-bert-jev-demo)** —
+nothing to install. A static React page calling a serverless API that wakes on demand and
+sleeps when nobody is using it, so it costs nothing to leave running. The first request after
+a quiet spell takes about ten seconds to wake; after that it answers in under a second.
+
+**In a notebook** — [open the Colab notebook](https://colab.research.google.com/github/ali-rehman-ML/modern-bert-jev/blob/main/demo.ipynb)
+and press play, if you want the full PyTorch model rather than the hosted one.
 
 **On your own machine:**
 
@@ -100,6 +106,28 @@ Only **1.6 million** of its 150 million settings were trained — a thin adapter
 attention layers plus one small output layer. The trained part is 6.5 MB.
 
 Trained on all nine option-picking tasks at once for 2 hours on one H100.
+
+## Serving it yourself
+
+`modal_serve.py` deploys the scorer as a pay-per-second API:
+
+```bash
+python -m modal deploy modal_serve.py
+```
+
+It is deliberately torch-free. `export_onnx.py` folds the LoRA into the frozen weights &mdash;
+`base(x) + (x @ A.T @ B.T) * scale` is just `Linear(W + scale * B @ A)` &mdash; leaving a plain
+ModernBERT graph that `onnxruntime` runs with the Rust tokenizer and nothing else. That fits
+the smallest container Modal sells and cold-starts in about ten seconds, where a PyTorch image
+would need several times the memory and be billed for every second of a much longer start.
+
+**fp32, not int8.** Dynamic quantization looked attractive at 150 MB against 597 MB, but it
+moved scores by 5&ndash;8 and flipped MNLI's argmax; per-channel with `reduce_range` was no
+better. fp32 ONNX tracks PyTorch to **1e-4** on identical tokens, so that is what ships.
+`export_onnx.py` refuses to emit anything whose ranking decisions drift from the PyTorch
+reference, which is how the int8 problem surfaced before it reached the demo.
+
+`space-react/` is the front end: Vite + React, 232 KB built, no model in the browser.
 
 ## One bug worth knowing about
 

@@ -27,7 +27,8 @@ app = modal.App("modernbert-jev-choices")
 volume = modal.Volume.from_name("modernbert-jev-experiments", create_if_missing=True)
 image = (modal.Image.debian_slim(python_version="3.12")
          .pip_install("torch==2.9.0", "transformers==5.17.0", "tensorboard==2.21.0",
-                      "numpy==2.3.5", "safetensors==0.8.0")
+                      "numpy==2.3.5", "safetensors==0.8.0", "onnx==1.20.0",
+                      "onnxruntime==1.30.0", "onnxscript==0.6.0")
          .env({"HF_HOME": "/experiment/.cache/huggingface", "HF_HUB_DISABLE_XET": "1",
                "HF_HUB_DISABLE_PROGRESS_BARS": "1", "PYTHONUNBUFFERED": "1",
                # Padded batch shapes vary widely between steps, which fragments the
@@ -35,7 +36,8 @@ image = (modal.Image.debian_slim(python_version="3.12")
                # torch 2.9 renamed this; set both so it works either side of the rename.
                "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
                "PYTORCH_ALLOC_CONF": "expandable_segments:True"}))
-for filename in ("bench_data.py", "choice_model.py", "experiment.py", "tracking.py", "download_model.py"):
+for filename in ("bench_data.py", "choice_model.py", "experiment.py", "tracking.py",
+                 "download_model.py", "export_onnx.py"):
     image = image.add_local_file(Path(__file__).parent / filename, f"/opt/project/{filename}")
 image = image.add_local_dir(Path(__file__).parent / "configs", "/opt/project/configs")
 
@@ -151,6 +153,21 @@ def train_a10(config: str, run: str, resume: bool = False):
               memory=65536, timeout=86400, max_containers=1)
 def train_h100(config: str, run: str, resume: bool = False):
     return run_training(config, run, resume)
+
+
+@app.function(image=image, volumes={"/experiment": volume}, cpu=8, memory=32768, timeout=5400)
+def export_onnx(run: str):
+    """Fold the adapter into the weights and emit a browser-ready ONNX scorer."""
+    import os
+    import subprocess
+    import sys
+    os.chdir("/experiment")
+    settings = json.loads(Path(f"runs/{run}/config.json").read_text())
+    subprocess.run([sys.executable, "/opt/project/download_model.py", settings["model"]], check=True)
+    subprocess.run([sys.executable, "-u", "/opt/project/export_onnx.py",
+                    "--run", f"runs/{run}", "--output", f"runs/{run}/onnx"], check=True)
+    volume.commit()
+    return json.loads(Path(f"runs/{run}/onnx/export_report.json").read_text())
 
 
 TRAINERS = {"a10": train_a10, "h100": train_h100}
