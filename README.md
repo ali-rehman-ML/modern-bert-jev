@@ -76,6 +76,11 @@ Sorting text into a known list of categories. Tested on 9,599 examples it had ne
 
 Overall: **64% correct** where random guessing gets 15%.
 
+Against the benchmark's own reference system, `jev-1.13.0`, on the identical 9,599 test rows:
+it wins 4 of 9 on accuracy and **6 of 9 on NLL**. Excluding the two knowledge tasks it is
+ahead on accuracy (0.723 vs 0.710) and well ahead on every calibration measure — macro ECE
+0.068 vs 0.139, macro NLL 0.910 vs 2.747. Full table in **[BENCHMARK.md](BENCHMARK.md)**.
+
 ## What it is bad at
 
 **Anything needing world knowledge.** The bottom two rows above are the honest warning. On
