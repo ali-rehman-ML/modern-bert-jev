@@ -113,26 +113,6 @@ The percentages are tuned to be honest: when it says 70%, it is right about 70% 
 *Click an example below to see it in action.*
 """
 
-DETAIL = """
-This is a small model — **150 million** settings, of which only **1.6 million** were trained.
-It is `ModernBERT-base` with a thin adapter on top, trained on nine different option-picking
-tasks at once: bank support messages, voice assistant commands, emotions in comments, legal
-contract clauses, and sentence logic.
-
-**What it is good at:** sorting things into a known list of categories. Bank support intents
-(86% right out of 77 options), voice commands (84% out of 60), customer intents (83% out of 151),
-legal clause types (76% out of 100).
-
-**What it is bad at:** anything needing world knowledge. On school-exam questions it scores
-28%, barely better than guessing at 25%. It is a small model and it has not memorised facts.
-Do not use it for trivia or exam questions.
-
-**Speed:** this demo runs on a free processor, not a graphics card, so a long list of options
-takes a few seconds. It scores each option separately, so 80 options means 80 passes.
-
-[Model files](https://huggingface.co/ali-rehman-ML/modern-bert-jev) ·
-[Code](https://github.com/ali-rehman-ML/modern-bert-jev) · Apache-2.0
-"""
 
 with gr.Blocks(title="Which option fits best?", theme=gr.themes.Soft()) as demo:
     gr.Markdown(INTRO)
@@ -150,8 +130,6 @@ with gr.Blocks(title="Which option fits best?", theme=gr.themes.Soft()) as demo:
             chart = gr.Label(label="How likely each option is", num_top_classes=8)
     gr.Examples(EXAMPLES, inputs=[background, question, options],
                 label="Try one of these", cache_examples=False)
-    with gr.Accordion("What is this, and what is it bad at?", open=False):
-        gr.Markdown(DETAIL)
     button.click(score, [background, question, options], [chart, answer])
 
 if __name__ == "__main__":

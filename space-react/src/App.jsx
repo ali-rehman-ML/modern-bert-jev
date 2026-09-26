@@ -186,31 +186,6 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        <details>
-          <summary>What is this, and what is it bad at?</summary>
-          <div className="footer__body">
-            <p>
-              A small model &mdash; 150 million settings, of which only 1.6 million were trained.
-              It is ModernBERT with a thin adapter, taught nine option-picking tasks at once: bank
-              support messages, voice commands, emotions, legal clauses and sentence logic.
-            </p>
-            <p>
-              <strong>Good at</strong> sorting text into a known list of categories. Bank support
-              intents 86% right out of 77 options, voice commands 84% out of 60, customer intents
-              83% out of 151, legal clause types 76% out of 100.
-            </p>
-            <p>
-              <strong>Bad at</strong> anything needing world knowledge. On university exam questions
-              it scores 28% where guessing gets 25% &mdash; that is noise, not a model. Use a large
-              language model for trivia and exams.
-            </p>
-            <p>
-              The percentages are calibrated, so when it says 70% it is right about 70% of the
-              time. Scoring runs on a small serverless CPU that starts when you use it and stops
-              when you stop, so the first request after a quiet spell is slow and the rest are not.
-            </p>
-          </div>
-        </details>
         <nav className="links">
           <a href="https://huggingface.co/ali-rehman-ML/modern-bert-jev">Model</a>
           <a href="https://github.com/ali-rehman-ML/modern-bert-jev">Code</a>
